@@ -37,8 +37,8 @@ def main():
     term = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE)
     stdout, stderr = term.communicate()
     if stdout != b"" or stderr != b"":
-        print("Some Output from nginx:\n----stdout:\n{}\n----stderr:\n{}".format(
-            stdout.decode(), stderr.decode()))
+        print("Some Output from nginx:\n----stdout:\n{}\n----stderr:\n{}"
+              "".format(stdout.decode(), stderr.decode()))
 
 if __name__ == '__main__':
     main()
