@@ -35,6 +35,9 @@ if ((Join-Path $__path1 '') -eq (Join-Path $__path2 '')){
 # start python in wt, not in new cmd
 $env:pathext = $env:pathext + ";.PY"
 
+# git encoding
+$env:LC_ALL='C.UTF-8'
+
 
 #Aliasses
 Set-Alias ll ls
