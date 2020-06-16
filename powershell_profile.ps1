@@ -23,6 +23,15 @@ Function Edit-Vimrc
     vim $home\_vimrc
 }
 
+Function wex
+{
+    if ($args[0] -eq $null){
+        explorer.exe .
+    } else {
+        explorer.exe $args[0]
+    }
+}
+
 
 # make wt callable with the current working directory
 # or in home if started from startbar
