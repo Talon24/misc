@@ -50,3 +50,5 @@ $env:LC_ALL='C.UTF-8'
 
 #Aliasses
 Set-Alias ll ls
+Set-Alias xsrv "C:\Program Files\VcXsrv\vcxsrv.exe"
+Set-Alias note "C:\Program Files (x86)\Notepad++\notepad++.exe"
