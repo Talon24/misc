@@ -34,25 +34,63 @@ def get_titles() -> list:
     return titles
 
 
-def current_song() -> str:
-    """Find the winamp window title."""
-    window_titles = get_titles()
-    try:
-        winamp = [title for title in window_titles
-                  if re.match(r".* Winamp(?: \[.+\])?", title)][0]
-    except IndexError:
-        winamp = None
-    return winamp
+class Winamp():
+    """Reader for winamp."""
+    def __init__(self):
+        self.song = None
+        self.attributes = None
+        self.window_title = None
+        self.previous_title = None
+
+    def read_window_title(self):
+        """Find the winamp window title."""
+        window_titles = get_titles()
+        try:
+            winamp = [title for title in window_titles
+                      if re.match(r".* Winamp(?: \[.+\])?", title)][0]
+        except IndexError:
+            winamp = None
+        self.previous_title = self.window_title
+        self.window_title = winamp
+
+    def song_attributes(self) -> (str, str, str):
+        """Parse the song information / status from the winamp title."""
+        match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
+                         self.window_title)
+        author = match.group(2)
+        title = match.group(3)
+        status = match.group(4)
+        return author, title, status
+
+    def refresh(self):
+        """Update the view."""
+        self.read_window_title()
+
+    def changed(self):
+        """Whether the song has changed."""
+        return self.previous_title != self.window_title
 
 
-def song_attributes(window_title: str) -> (str, str, str):
-    """Parse the song information / status from the winamp title."""
-    match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
-                     window_title)
-    author = match.group(2)
-    title = match.group(3)
-    status = match.group(4)
-    return author, title, status
+class Foobar2000():
+    """Reader for Foobar2000. NOT IMPLEMENTED YET"""
+    def current_song(self) -> str:
+        """Find the winamp window title."""
+        window_titles = get_titles()
+        try:
+            winamp = [title for title in window_titles
+                      if re.match(r".* Winamp(?: \[.+\])?", title)][0]
+        except IndexError:
+            winamp = None
+        return winamp
+
+    def song_attributes(self, window_title: str) -> (str, str, str):
+        """Parse the song information / status from the winamp title."""
+        match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
+                         window_title)
+        author = match.group(2)
+        title = match.group(3)
+        status = match.group(4)
+        return author, title, status
 
 
 def find_license(title: str) -> str:
@@ -77,19 +115,18 @@ def edit_file(text: str):
 def main():
     """Continuously check for current song."""
     print("Starting program...")
-    last_checked = ""
+    winamp = Winamp()
     while True:
         try:
-            song = current_song()
-            if song != last_checked and song is not None:
-                last_checked = song
-                author, title, status = song_attributes(song)
+            winamp.refresh()
+            if winamp.changed() and winamp.window_title is not None:
+                author, title, status = winamp.song_attributes()
                 text = ""
                 if status not in ["Stopped", "Paused"]:
                     text = find_license(title)
-                    print("Paused or stopped, removing text.")
-                else:
                     print(f"Now displaying {title} by {author}.")
+                else:
+                    print("Paused or stopped, removing text.")
                 edit_file(text)
             time.sleep(1)
         except KeyboardInterrupt:
