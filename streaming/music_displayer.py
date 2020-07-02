@@ -73,24 +73,63 @@ class Winamp():
 
 class Foobar2000():
     """Reader for Foobar2000. NOT IMPLEMENTED YET"""
-    def current_song(self) -> str:
+    def __init__(self, title_template):
+        self.song = None
+        self.attributes = None
+        self.window_title = None
+        self.previous_title = None
+        self.template = title_template
+
+    def read_window_title(self):
         """Find the winamp window title."""
         window_titles = get_titles()
         try:
-            winamp = [title for title in window_titles
-                      if re.match(r".* Winamp(?: \[.+\])?", title)][0]
+            foobar = [title for title in window_titles
+                      if title.endswith("[foobar2000]")
+                      or title.startswith("foobar2000")][0]
         except IndexError:
-            winamp = None
-        return winamp
+            foobar = None
+        self.previous_title = self.window_title
+        self.window_title = foobar
 
-    def song_attributes(self, window_title: str) -> (str, str, str):
+    def song_attributes(self) -> (str, str, str):
         """Parse the song information / status from the winamp title."""
-        match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
-                         window_title)
-        author = match.group(2)
-        title = match.group(3)
-        status = match.group(4)
+        pattern = self.template
+        for tag in re.findall("%.+?%", pattern):
+            if tag == r"%title%":
+                pattern = pattern.replace(tag, r"(?P<title>.+?)")
+                # pattern = pattern.replace(tag, r"(.+?)")
+            elif tag == r"%album artist%":
+                pattern = pattern.replace(tag, r"(?P<artist>.+?)")
+                # pattern = pattern.replace(tag, r"(.+?)")
+            else:
+                pattern = pattern.replace(tag, ".+?")
+        pattern = re.sub(r"'\['", r"\\x5b", pattern)
+        pattern = re.sub(r"'\]'", r"\\x5d", pattern)
+        pattern = re.sub(r"'([^']+?)'", r"\1", pattern)
+        prev = None
+        while pattern != prev:
+            prev = pattern
+            pattern = re.sub(r"\[([^\[\]]+)\]", r"(?:\1)?", pattern)
+        pattern = re.sub(r"([\/])", r"\\\1", pattern)
+        pattern += r"  \[foobar2000\]"
+        pattern = "^" + pattern + "$"
+        # print(pattern)
+        match = re.match(pattern, self.window_title)
+        if match is None:
+            return None, None, "Stopped"
+        author = match.group("artist")
+        title = match.group("title")
+        status = None  # Apparently foobar does not publish this
         return author, title, status
+
+    def refresh(self):
+        """Update the view."""
+        self.read_window_title()
+
+    def changed(self):
+        """Whether the song has changed."""
+        return self.previous_title != self.window_title
 
 
 def find_license(title: str) -> str:
@@ -112,19 +151,44 @@ def edit_file(text: str):
         file.write(text)
 
 
+def read_config():
+    """Read the config file and setup objects."""
+    config = {}
+    try:
+        with open("config.txt", "r") as file:
+            for line in file.readlines():
+                if not line.startswith("#"):
+                    key, value = line.strip().split("=", 1)
+                    config[key] = value
+        if config["player"].casefold() == "winamp":
+            player = Winamp()
+        elif config["player"].casefold() in ("foobar", "foobar2000"):
+            player = Foobar2000(config["foobar title"])
+        else:
+            raise LookupError(f"Player {config['player']} not supported!")
+    except KeyError as err:
+        raise KeyError("Malformed config file!") from err
+    except FileNotFoundError:
+        print("No config file, assuming Winamp.")
+        player = Winamp()
+    return player
+
+
 def main():
     """Continuously check for current song."""
     print("Starting program...")
-    winamp = Winamp()
+    player = read_config()
     while True:
         try:
-            winamp.refresh()
-            if winamp.changed() and winamp.window_title is not None:
-                author, title, status = winamp.song_attributes()
+            player.refresh()
+            if player.changed() and player.window_title is not None:
+                author, title, status = player.song_attributes()
                 text = ""
                 if status not in ["Stopped", "Paused"]:
                     text = find_license(title)
                     print(f"Now displaying {title} by {author}.")
+                    if text == "":
+                        print("No license found for this song!")
                 else:
                     print("Paused or stopped, removing text.")
                 edit_file(text)

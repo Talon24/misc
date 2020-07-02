@@ -1,0 +1,2 @@
+player=winamp
+foobar title=[%album artist% - ]['['%album%[ CD%discnumber%][ #%tracknumber%]']' ]%title%[ '//' %track artist%]
