@@ -81,7 +81,7 @@ class Foobar2000():
         self.template = title_template
 
     def read_window_title(self):
-        """Find the winamp window title."""
+        """Find the foobar window title."""
         window_titles = get_titles()
         try:
             foobar = [title for title in window_titles
@@ -93,8 +93,10 @@ class Foobar2000():
         self.window_title = foobar
 
     def song_attributes(self) -> (str, str, str):
-        """Parse the song information / status from the winamp title."""
+        """Parse the song information from the foobar title."""
         pattern = self.template
+
+        # Place capture groups for watched tags, just match others.
         for tag in re.findall("%.+?%", pattern):
             if tag == r"%title%":
                 pattern = pattern.replace(tag, r"(?P<title>.+?)")
@@ -104,17 +106,30 @@ class Foobar2000():
                 # pattern = pattern.replace(tag, r"(.+?)")
             else:
                 pattern = pattern.replace(tag, ".+?")
+
+        # Replace text-brackets with hex-escape code so they won't be
+        # considered int he following
         pattern = re.sub(r"'\['", r"\\x5b", pattern)
         pattern = re.sub(r"'\]'", r"\\x5d", pattern)
+
+        # Remove the quotes around literal strings
         pattern = re.sub(r"'([^']+?)'", r"\1", pattern)
+
+        # Translate foobar optionals to regex optionals
         prev = None
         while pattern != prev:
             prev = pattern
             pattern = re.sub(r"\[([^\[\]]+)\]", r"(?:\1)?", pattern)
+
+        # Excape forwardslashes
         pattern = re.sub(r"([\/])", r"\\\1", pattern)
+
+        # append foobar name to the end of the title
         pattern += r"  \[foobar2000\]"
+
+        # Force the pattern to match from the beginning to the end
         pattern = "^" + pattern + "$"
-        # print(pattern)
+
         match = re.match(pattern, self.window_title)
         if match is None:
             return None, None, "Stopped"
