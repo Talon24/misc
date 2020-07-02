@@ -87,7 +87,7 @@ def main():
                 text = ""
                 if status not in ["Stopped", "Paused"]:
                     text = find_license(title)
-                    print(f"Paused or stopped, removing text.")
+                    print("Paused or stopped, removing text.")
                 else:
                     print(f"Now displaying {title} by {author}.")
                 edit_file(text)
