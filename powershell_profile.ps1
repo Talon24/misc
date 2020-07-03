@@ -23,6 +23,7 @@ Function Edit-Vimrc
     vim $home\_vimrc
 }
 
+# Open the windows explorer in cmd or in supplied path
 Function wex
 {
     if ($args[0] -eq $null){
@@ -30,6 +31,13 @@ Function wex
     } else {
         explorer.exe $args[0]
     }
+}
+
+# Profile a python script with snakeviz
+Function pyprofile
+{
+    python -m cProfile -o $env:TEMP\python_profiling.prof $args
+    snakeviz $env:TEMP\python_profiling.prof
 }
 
 
