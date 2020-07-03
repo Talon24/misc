@@ -1,2 +1,5 @@
+# The player you use. Can be Winamp or foobar / foobar2000
 player=winamp
+
+# If foobar is your player, you need to specify the string that defines your foobar title
 foobar title=[%album artist% - ]['['%album%[ CD%discnumber%][ #%tracknumber%]']' ]%title%[ '//' %track artist%]
