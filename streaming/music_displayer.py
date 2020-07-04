@@ -78,7 +78,7 @@ class Foobar2000():
         self.attributes = None
         self.window_title = None
         self.previous_title = None
-        self.template = title_template
+        self.build_pattern(title_template)
 
     def read_window_title(self):
         """Find the foobar window title."""
@@ -92,9 +92,11 @@ class Foobar2000():
         self.previous_title = self.window_title
         self.window_title = foobar
 
-    def song_attributes(self) -> (str, str, str):
-        """Parse the song information from the foobar title."""
-        pattern = self.template
+    def build_pattern(self, pattern):
+        """Pattern tanslation.
+
+        Converts the foobar title build string into a regex that extracts
+        the relevant fields from the built title."""
 
         # Place capture groups for watched tags, just match others.
         for tag in re.findall("%.+?%", pattern):
@@ -129,8 +131,12 @@ class Foobar2000():
 
         # Force the pattern to match from the beginning to the end
         pattern = "^" + pattern + "$"
+        self.pattern = pattern
 
-        match = re.match(pattern, self.window_title)
+    def song_attributes(self) -> (str, str, str):
+        """Parse the song information from the foobar title."""
+
+        match = re.match(self.pattern, self.window_title)
         if match is None:
             return None, None, "Stopped"
         author = match.group("artist")
