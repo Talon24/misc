@@ -54,13 +54,16 @@ class Winamp():
         self.window_title = winamp
 
     def song_attributes(self) -> (str, str, str):
-        """Parse the song information / status from the winamp title."""
-        match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
-                         self.window_title)
-        author = match.group(2)
-        title = match.group(3)
-        status = match.group(4)
-        return author, title, status
+        try:
+            """Parse the song information / status from the winamp title."""
+            match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
+                             self.window_title)
+            author = match.group(2)
+            title = match.group(3)
+            status = match.group(4)
+            return author, title, status
+        except TypeError:
+            return None, None, None
 
     def refresh(self):
         """Update the view."""
@@ -135,14 +138,16 @@ class Foobar2000():
 
     def song_attributes(self) -> (str, str, str):
         """Parse the song information from the foobar title."""
-
-        match = re.match(self.pattern, self.window_title)
-        if match is None:
-            return None, None, "Stopped"
-        author = match.group("artist")
-        title = match.group("title")
-        status = None  # Apparently foobar does not publish this
-        return author, title, status
+        try:
+            match = re.match(self.pattern, self.window_title)
+            if match is None:
+                return None, None, "Stopped"
+            author = match.group("artist")
+            title = match.group("title")
+            status = None  # Apparently foobar does not publish this
+            return author, title, status
+        except TypeError:
+            return None, None, None
 
     def refresh(self):
         """Update the view."""
@@ -203,10 +208,10 @@ def main():
     while True:
         try:
             player.refresh()
-            if player.changed() and player.window_title is not None:
+            if player.changed():
                 author, title, status = player.song_attributes()
                 text = ""
-                if status not in ["Stopped", "Paused"]:
+                if status not in ["Stopped", "Paused"] and player.window_title is not None:
                     text = find_license(title)
                     print(f"Now displaying {title} by {author}.")
                     if text == "":
