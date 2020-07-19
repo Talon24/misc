@@ -54,8 +54,8 @@ class Winamp():
         self.window_title = winamp
 
     def song_attributes(self) -> (str, str, str):
+        """Parse the song information / status from the winamp title."""
         try:
-            """Parse the song information / status from the winamp title."""
             match = re.match(r"^(\d)+\. (.+) - (.+) - Winamp(?: \[(.+)\])?$",
                              self.window_title)
             author = match.group(2)
