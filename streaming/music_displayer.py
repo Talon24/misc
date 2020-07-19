@@ -178,8 +178,9 @@ def read_config():
     try:
         with open("config.txt", "r") as file:
             for line in file.readlines():
-                if not line.startswith("#"):
-                    key, value = line.strip().split("=", 1)
+                stripped = line.strip()
+                if not stripped.startswith("#") and stripped != "":
+                    key, value = stripped.split("=", 1)
                     config[key] = value
         if config["player"].casefold() == "winamp":
             player = Winamp()
