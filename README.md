@@ -5,6 +5,18 @@ Collection of minor scripts or other things
 Automate starting and stopping video streaming server and get the URL
 that you need to send to the receiver.
 
+## number_namer.py
+Shows the name of a long number in a pronouncable way.
+```
+.\number_namer.py 123456789741258369 -l English-short
+123 quintillion
+456 quadrillion
+789 trillion
+741 billion
+258 million
+369
+```
+
 ## actor_pairings.py
 Ever wondered if there are voice actors that work together very often? find out with this script using imdb.
 Works with direct imdb links or the name identifier in the url (ht&#8203;tps://ww&#8203;w.imdb.com/name/**nm0354937**/)
