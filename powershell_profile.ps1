@@ -55,6 +55,22 @@ $env:pathext = $env:pathext + ";.PY"
 # git encoding
 $env:LC_ALL='C.UTF-8'
 
+function prompt {
+    write-host "PS " -nonewline
+    $first = $true
+    #write-host (get-location) -fore DarkYellow -nonewline
+    foreach ($folder in ((get-location) -Split "\\"))
+    {
+        if ($first){
+            $first = $false
+        } else {
+            write-host "`\" -Fore Yellow -nonewline
+        }
+        write-host $folder -Fore DarkYellow -nonewline
+    }
+    return '> '
+}
+
 
 #Aliasses
 Set-Alias ll ls
